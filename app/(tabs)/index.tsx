@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { saveUser, validateUser, saveCurrentUser, getCurrentUser, getStoredUsers } from '../../utils/userStorage';
+import { saveUser, validateUser, saveCurrentUser, getCurrentUser, getStoredUsers } from '@/utils/userStorage';
 
 // Web-compatible alert function
 const showAlert = (title: string, message: string, buttons?: Array<{text: string, onPress?: () => void, style?: string}>) => {
