@@ -19,6 +19,16 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          title: 'Home',
+          tabBarIcon: ({ color, size }) => {
+            return <Ionicons name="home-outline" size={size} color={color} />;
+          },
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="login"
+        options={{
           title: 'Login',
           tabBarIcon: ({ color, size }) => {
             return <Ionicons name="log-in-outline" size={size} color={color} />;
@@ -27,11 +37,21 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="welcome"
+        name="signup"
         options={{
-          title: 'Welcome',
+          title: 'Sign Up',
           tabBarIcon: ({ color, size }) => {
-            return <Ionicons name="home-outline" size={size} color={color} />;
+            return <Ionicons name="person-add-outline" size={size} color={color} />;
+          },
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: 'Dashboard',
+          tabBarIcon: ({ color, size }) => {
+            return <Ionicons name="checkmark-circle-outline" size={size} color={color} />;
           },
           tabBarStyle: { display: 'none' },
         }}

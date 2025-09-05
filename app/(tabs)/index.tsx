@@ -2,41 +2,16 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { saveUser, validateUser, saveCurrentUser, getCurrentUser, getStoredUsers } from '@/utils/userStorage';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { getCurrentUser } from '@/utils/userStorage';
 
-// Web-compatible alert function
-const showAlert = (title: string, message: string, buttons?: Array<{text: string, onPress?: () => void, style?: string}>) => {
-  if (Platform.OS === 'web') {
-    // For web, use browser alert for now - in production you'd use a custom modal
-    const result = window.confirm(`${title}\n\n${message}`);
-    if (buttons && buttons.length > 1) {
-      if (result && buttons[1]?.onPress) {
-        buttons[1].onPress();
-      } else if (!result && buttons[0]?.onPress) {
-        buttons[0].onPress();
-      }
-    }
-  } else {
-    Alert.alert(title, message);
-  }
-};
-
-export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSignup, setIsSignup] = useState(false);
+export default function HomePage() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const router = useRouter();
 
@@ -51,447 +26,182 @@ export default function LoginScreen() {
       if (currentUser) {
         // User is already logged in, navigate to welcome page
         console.log(`Auto-login successful for user: ${currentUser.email}`);
-        router.push('/(tabs)/welcome');
+        router.push('/(tabs)/home');
       } else {
         console.log('No existing session found');
       }
     } catch (error) {
       console.error('Error checking session:', error);
-      // Don't show user error for session check failures
-      // Just log and continue to login screen
     } finally {
       setIsCheckingSession(false);
     }
   };
 
-  const handleSubmit = async () => {
-    if (isSignup) {
-      // Signup validation
-      if (username.trim() === '') {
-        showAlert('Validation Error', 'Username is required');
-        return;
-      }
-      if (email.trim() === '') {
-        showAlert('Validation Error', 'Email address is required');
-        return;
-      }
-      if (password.trim() === '') {
-        showAlert('Validation Error', 'Password is required');
-        return;
-      }
-      if (confirmPassword.trim() === '') {
-        showAlert('Validation Error', 'Please confirm your password');
-        return;
-      }
-      if (password !== confirmPassword) {
-        showAlert('Validation Error', 'Passwords do not match. Please check and try again.');
-        return;
-      }
-      if (password.length < 6) {
-        showAlert('Validation Error', 'Password must be at least 6 characters long');
-        return;
-      }
-      // Basic email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email.trim())) {
-        showAlert('Validation Error', 'Please enter a valid email address');
-        return;
-      }
-    } else {
-      // Login validation
-      if (email.trim() === '') {
-        showAlert('Login Error', 'Email is required');
-        return;
-      }
-      if (password.trim() === '') {
-        showAlert('Login Error', 'Password is required');
-        return;
-      }
-      // Basic email validation for login
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email.trim())) {
-        showAlert('Login Error', 'Please enter a valid email address');
-        return;
-      }
-    }
-
-    setIsLoading(true);
-    
-    try {
-      if (isSignup) {
-        // Save new user account
-        const newUser = await saveUser({
-          username: username.trim(),
-          email: email.trim(),
-          password: password, // In production, this should be hashed
-        });
-        
-        // Auto-login the new user and navigate to welcome page
-        await saveCurrentUser({
-          id: newUser.id,
-          username: newUser.username,
-          email: newUser.email,
-        });
-        
-        setIsLoading(false);
-        // Clear the form
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        setUsername('');
-        
-        router.push('/(tabs)/welcome');
-      } else {
-        // Validate user credentials
-        const user = await validateUser(email.trim(), password);
-        
-        if (user) {
-          // Save current user session
-          await saveCurrentUser({
-            id: user.id,
-            username: user.username,
-            email: user.email,
-          });
-          
-          setIsLoading(false);
-          // Clear the form
-          setEmail('');
-          setPassword('');
-          setConfirmPassword('');
-          setUsername('');
-          
-          // Navigate to welcome tab
-          router.push('/(tabs)/welcome');
-        } else {
-          setIsLoading(false);
-          // Check if any users exist to provide better error message
-          const allUsers = await getStoredUsers();
-          const userExists = allUsers.find(u => u.email === email.trim());
-          
-          if (userExists) {
-            // User exists but password is wrong
-            showAlert(
-              'Login Failed', 
-              'The password you entered is incorrect. Please check your password and try again.\n\nTip: Make sure Caps Lock is off and check for typos.'
-            );
-          } else {
-            // Check if there are any users at all
-            if (allUsers.length === 0) {
-              // No users exist yet - first time user
-              showAlert(
-                'Welcome! 👋', 
-                `Looks like you're new here! No accounts exist yet.\n\nLet's create your first account with email "${email.trim()}".`,
-                [
-                  { text: 'Maybe Later', style: 'cancel' },
-                  { 
-                    text: 'Create Account', 
-                    onPress: () => {
-                      setIsSignup(true);
-                      setPassword(''); // Clear password but keep email
-                    }
-                  }
-                ]
-              );
-            } else {
-              // Users exist but this email doesn't
-              showAlert(
-                'Email Not Found 🔍', 
-                `We couldn't find an account with email "${email.trim()}".\n\n• Check if you spelled it correctly\n• Try a different email\n• Create a new account if you're new\n\nWould you like to create an account?`,
-                [
-                  { text: 'Try Again', style: 'cancel' },
-                  { 
-                    text: 'Create Account', 
-                    onPress: () => {
-                      setIsSignup(true);
-                      setPassword(''); // Clear password but keep email
-                    }
-                  }
-                ]
-              );
-            }
-          }
-        }
-      }
-    } catch (error) {
-      setIsLoading(false);
-      console.error('Authentication error:', error);
-      
-      let errorMessage = 'An unexpected error occurred. Please try again.';
-      
-      if (error instanceof Error) {
-        if (error.message.includes('already exists')) {
-          errorMessage = 'An account with this email or username already exists. Please try logging in or use different credentials.';
-        } else if (error.message.includes('storage')) {
-          errorMessage = 'Unable to save your information. Please check your device storage and try again.';
-        } else if (error.message.includes('network') || error.message.includes('timeout')) {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      showAlert(isSignup ? 'Signup Failed' : 'Login Failed', errorMessage);
-    }
-  };
-
-  const resetForm = () => {
-    try {
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-      setUsername('');
-    } catch (error) {
-      console.error('Error resetting form:', error);
-      showAlert('Error', 'Failed to clear form. Please try again.');
-    }
-  };
-
-  const toggleMode = () => {
-    try {
-      if (isLoading) {
-        showAlert('Please Wait', 'Please wait for the current operation to complete before switching modes.');
-        return;
-      }
-      
-      setIsSignup(!isSignup);
-      resetForm();
-    } catch (error) {
-      console.error('Error toggling mode:', error);
-      showAlert('Error', 'Failed to switch between login and signup modes. Please try again.');
-    }
-  };
+  if (isCheckingSession) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView 
-        contentContainerStyle={styles.scrollContainer}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#667eea', '#764ba2', '#f093fb']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradient}
       >
-        <View style={styles.loginCard}>
-          <Text style={styles.title}>
-            {isSignup ? 'Create Account' : 'Welcome Back'}
-          </Text>
+        <View style={styles.content}>
+          <View style={styles.logoContainer}>
+            <Ionicons name="rocket" size={80} color="#fff" />
+          </View>
+          
+          <Text style={styles.title}>Welcome to MyApp</Text>
           <Text style={styles.subtitle}>
-            {isSignup ? 'Sign up to create your account' : 'Sign in to continue to your account'}
+            Your journey starts here. Sign in to continue or create a new account to get started.
           </Text>
           
-          {!isSignup ? (
-            <View style={styles.helpContainer}>
-              <Text style={styles.helpText}>
-                💡 New here? Don't have an account yet? Tap "Sign Up" below to create one!
-              </Text>
-            </View>
-          ) : null}
-          
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              placeholderTextColor="#999"
-              editable={!isLoading}
-            />
-          </View>
-          
-          {isSignup ? (
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Username</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your username"
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholderTextColor="#999"
-                editable={!isLoading}
-              />
-            </View>
-          ) : null}
-          
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholderTextColor="#999"
-              editable={!isLoading}
-            />
-          </View>
-          
-          {isSignup ? (
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Confirm Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholderTextColor="#999"
-                editable={!isLoading}
-              />
-            </View>
-          ) : null}
-          
-          <TouchableOpacity 
-            style={[styles.button, isLoading ? styles.buttonDisabled : null]} 
-            onPress={handleSubmit}
-            disabled={isLoading}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.buttonText}>
-              {isLoading 
-                ? (isSignup ? 'Creating Account...' : 'Signing In...') 
-                : (isSignup ? 'Sign Up' : 'Sign In')
-              }
-            </Text>
-          </TouchableOpacity>
-          
-          <View style={styles.bottomContainer}>
-            <TouchableOpacity style={styles.toggleMode} onPress={toggleMode}>
-              <Text style={styles.toggleModeText}>
-                {isSignup 
-                  ? 'Already have an account? Sign In' 
-                  : 'Don\'t have an account? Sign Up'
-                }
-              </Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity 
+              style={[styles.button, styles.loginButton]} 
+              onPress={() => router.push('/(tabs)/login')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="log-in" size={20} color="#fff" style={styles.buttonIcon} />
+              <Text style={styles.buttonText}>Sign In</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.clearForm} onPress={resetForm}>
-              <Text style={styles.clearFormText}>Clear Form</Text>
+            <TouchableOpacity 
+              style={[styles.button, styles.signupButton]} 
+              onPress={() => router.push('/(tabs)/signup')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="person-add" size={20} color="#667eea" style={styles.buttonIcon} />
+              <Text style={[styles.buttonText, styles.signupButtonText]}>Create Account</Text>
             </TouchableOpacity>
           </View>
+          
+          <View style={styles.featuresContainer}>
+            <Text style={styles.featuresTitle}>Why choose us?</Text>
+            <View style={styles.featureItem}>
+              <Ionicons name="shield-checkmark" size={20} color="#fff" />
+              <Text style={styles.featureText}>Secure & Private</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Ionicons name="flash" size={20} color="#fff" />
+              <Text style={styles.featureText}>Fast & Reliable</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Ionicons name="people" size={20} color="#fff" />
+              <Text style={styles.featureText}>User Friendly</Text>
+            </View>
+          </View>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </LinearGradient>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
-  scrollContainer: {
-    flexGrow: 1,
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    backgroundColor: '#f8f9fa',
   },
-  loginCard: {
-    width: '100%',
-    maxWidth: 350,
-    backgroundColor: '#fff',
-    padding: 30,
-    borderRadius: 16,
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15)',
-    elevation: 8,
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  gradient: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  logoContainer: {
+    marginBottom: 30,
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#333',
+    color: '#fff',
+    marginBottom: 15,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
+    lineHeight: 24,
     marginBottom: 40,
+    paddingHorizontal: 20,
   },
-  helpContainer: {
-    backgroundColor: '#E8F4FD',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 25,
-    borderWidth: 1,
-    borderColor: '#B8E0FF',
-  },
-  helpText: {
-    fontSize: 14,
-    color: '#1565C0',
-    textAlign: 'center',
-    lineHeight: 20,
-    fontWeight: '500',
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  input: {
+  buttonContainer: {
     width: '100%',
-    height: 52,
-    borderColor: '#e0e0e0',
-    borderWidth: 2,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
-    color: '#333',
-
+    maxWidth: 300,
+    gap: 15,
   },
   button: {
-    width: '100%',
-    height: 52,
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-    boxShadow: '0px 4px 8px rgba(0, 122, 255, 0.3)',
-    elevation: 4,
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  buttonDisabled: {
-    backgroundColor: '#ccc',
-    shadowOpacity: 0,
-    elevation: 0,
+  loginButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  signupButton: {
+    backgroundColor: '#fff',
+  },
+  buttonIcon: {
+    marginRight: 10,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  bottomContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-    gap: 10,
-  },
-  toggleMode: {
-    alignItems: 'center',
-  },
-  toggleModeText: {
     fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '600',
+    fontWeight: '700',
+    color: '#fff',
   },
-  clearForm: {
+  signupButtonText: {
+    color: '#667eea',
+  },
+  featuresContainer: {
+    marginTop: 50,
     alignItems: 'center',
   },
-  clearFormText: {
+  featuresTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 20,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 20,
+  },
+  featureText: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginLeft: 10,
     fontWeight: '500',
   },
 });
