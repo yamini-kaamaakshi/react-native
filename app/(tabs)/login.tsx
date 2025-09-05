@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { validateUser, saveCurrentUser, getCurrentUser, getStoredUsers } from '@/utils/userStorage';
 
 // Web-compatible alert function
-const showAlert = (title: string, message: string, buttons?: Array<{text: string, onPress?: () => void, style?: string}>) => {
+const showAlert = (title: string, message: string, buttons?: Array<{text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive'}>) => {
   if (Platform.OS === 'web') {
     const result = window.confirm(`${title}\n\n${message}`);
     if (buttons && buttons.length > 1) {
@@ -25,7 +25,12 @@ const showAlert = (title: string, message: string, buttons?: Array<{text: string
       }
     }
   } else {
-    Alert.alert(title, message);
+    // Native platforms (Android/iOS) - pass buttons to Alert.alert
+    if (buttons) {
+      Alert.alert(title, message, buttons as any);
+    } else {
+      Alert.alert(title, message);
+    }
   }
 };
 
