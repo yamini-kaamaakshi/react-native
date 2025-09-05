@@ -31,10 +31,10 @@ const showAlert = (title: string, message: string, buttons?: Array<{text: string
 };
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
@@ -50,7 +50,7 @@ export default function LoginScreen() {
       const currentUser = await getCurrentUser();
       if (currentUser) {
         // User is already logged in, navigate to welcome page
-        console.log(`Auto-login successful for user: ${currentUser.username}`);
+        console.log(`Auto-login successful for user: ${currentUser.email}`);
         router.push('/(tabs)/welcome');
       } else {
         console.log('No existing session found');
@@ -99,12 +99,18 @@ export default function LoginScreen() {
       }
     } else {
       // Login validation
-      if (username.trim() === '') {
-        showAlert('Login Error', 'Username is required');
+      if (email.trim() === '') {
+        showAlert('Login Error', 'Email is required');
         return;
       }
       if (password.trim() === '') {
         showAlert('Login Error', 'Password is required');
+        return;
+      }
+      // Basic email validation for login
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        showAlert('Login Error', 'Please enter a valid email address');
         return;
       }
     }
@@ -129,15 +135,15 @@ export default function LoginScreen() {
         
         setIsLoading(false);
         // Clear the form
-        setUsername('');
+        setEmail('');
         setPassword('');
         setConfirmPassword('');
-        setEmail('');
+        setUsername('');
         
         router.push('/(tabs)/welcome');
       } else {
         // Validate user credentials
-        const user = await validateUser(username.trim(), password);
+        const user = await validateUser(email.trim(), password);
         
         if (user) {
           // Save current user session
@@ -149,10 +155,10 @@ export default function LoginScreen() {
           
           setIsLoading(false);
           // Clear the form
-          setUsername('');
+          setEmail('');
           setPassword('');
           setConfirmPassword('');
-          setEmail('');
+          setUsername('');
           
           // Navigate to welcome tab
           router.push('/(tabs)/welcome');
@@ -160,7 +166,7 @@ export default function LoginScreen() {
           setIsLoading(false);
           // Check if any users exist to provide better error message
           const allUsers = await getStoredUsers();
-          const userExists = allUsers.find(u => u.username === username.trim());
+          const userExists = allUsers.find(u => u.email === email.trim());
           
           if (userExists) {
             // User exists but password is wrong
@@ -174,30 +180,30 @@ export default function LoginScreen() {
               // No users exist yet - first time user
               showAlert(
                 'Welcome! 👋', 
-                `Looks like you're new here! No accounts exist yet.\n\nLet's create your first account with username "${username.trim()}".`,
+                `Looks like you're new here! No accounts exist yet.\n\nLet's create your first account with email "${email.trim()}".`,
                 [
                   { text: 'Maybe Later', style: 'cancel' },
                   { 
                     text: 'Create Account', 
                     onPress: () => {
                       setIsSignup(true);
-                      setPassword(''); // Clear password but keep username
+                      setPassword(''); // Clear password but keep email
                     }
                   }
                 ]
               );
             } else {
-              // Users exist but this username doesn't
+              // Users exist but this email doesn't
               showAlert(
-                'Username Not Found 🔍', 
-                `We couldn't find an account with username "${username.trim()}".\n\n• Check if you spelled it correctly\n• Try a different username\n• Create a new account if you're new\n\nWould you like to create an account?`,
+                'Email Not Found 🔍', 
+                `We couldn't find an account with email "${email.trim()}".\n\n• Check if you spelled it correctly\n• Try a different email\n• Create a new account if you're new\n\nWould you like to create an account?`,
                 [
                   { text: 'Try Again', style: 'cancel' },
                   { 
                     text: 'Create Account', 
                     onPress: () => {
                       setIsSignup(true);
-                      setPassword(''); // Clear password but keep username
+                      setPassword(''); // Clear password but keep email
                     }
                   }
                 ]
@@ -214,7 +220,7 @@ export default function LoginScreen() {
       
       if (error instanceof Error) {
         if (error.message.includes('already exists')) {
-          errorMessage = 'An account with this username or email already exists. Please try logging in or use different credentials.';
+          errorMessage = 'An account with this email or username already exists. Please try logging in or use different credentials.';
         } else if (error.message.includes('storage')) {
           errorMessage = 'Unable to save your information. Please check your device storage and try again.';
         } else if (error.message.includes('network') || error.message.includes('timeout')) {
@@ -230,10 +236,10 @@ export default function LoginScreen() {
 
   const resetForm = () => {
     try {
-      setUsername('');
+      setEmail('');
       setPassword('');
       setConfirmPassword('');
-      setEmail('');
+      setUsername('');
     } catch (error) {
       console.error('Error resetting form:', error);
       showAlert('Error', 'Failed to clear form. Please try again.');
@@ -280,36 +286,36 @@ export default function LoginScreen() {
             </View>
           ) : null}
           
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Email</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              placeholderTextColor="#999"
+              editable={!isLoading}
+            />
+          </View>
+          
           {isSignup ? (
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Email</Text>
+              <Text style={styles.inputLabel}>Username</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Enter your email"
-                value={email}
-                onChangeText={setEmail}
+                placeholder="Enter your username"
+                value={username}
+                onChangeText={setUsername}
                 autoCapitalize="none"
                 autoCorrect={false}
-                keyboardType="email-address"
                 placeholderTextColor="#999"
                 editable={!isLoading}
               />
             </View>
           ) : null}
-          
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Username</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your username"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholderTextColor="#999"
-              editable={!isLoading}
-            />
-          </View>
           
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Password</Text>
@@ -444,6 +450,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#f9f9f9',
     color: '#333',
+
   },
   button: {
     width: '100%',

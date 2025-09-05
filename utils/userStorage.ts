@@ -62,10 +62,10 @@ export const saveUser = async (user: Omit<User, 'id'>): Promise<User> => {
 };
 
 // Validate user credentials
-export const validateUser = async (username: string, password: string): Promise<User | null> => {
+export const validateUser = async (email: string, password: string): Promise<User | null> => {
   try {
     const users = await getStoredUsers();
-    const user = users.find(u => u.username === username && u.password === password);
+    const user = users.find(u => u.email === email && u.password === password);
     return user || null;
   } catch (error) {
     console.error('Error validating user:', error);

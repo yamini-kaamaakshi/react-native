@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,14 +10,43 @@ import {
   Platform,
   Modal,
   Linking,
+  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { logoutUser } from '../../utils/userStorage';
+import { LinearGradient } from 'expo-linear-gradient';
+import { logoutUser, getCurrentUser, UserSession } from '@/utils/userStorage';
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [greeting, setGreeting] = useState('');
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
+
+  useEffect(() => {
+    const updateGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) setGreeting('Good Morning');
+      else if (hour < 17) setGreeting('Good Afternoon');
+      else setGreeting('Good Evening');
+    };
+    
+    const loadCurrentUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Error loading current user:', error);
+      }
+    };
+    
+    updateGreeting();
+    loadCurrentUser().catch(console.error);
+    const interval = setInterval(updateGreeting, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleNavToLogout = () => {
     try {
@@ -51,21 +80,47 @@ export default function WelcomeScreen() {
     }
   };
 
+  const handleProfilePress = () => {
+    setShowProfileModal(true);
+  };
+
+  const handleProfileClose = () => {
+    setShowProfileModal(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#667eea', '#764ba2', '#f093fb']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientHeader}
+      >
+        <View style={styles.headerContent}>
+          <View style={styles.avatarContainer}>
+            <Ionicons name="person-circle" size={80} color="#fff" />
+          </View>
+          <Text style={styles.greetingText}>{greeting}! 👋</Text>
+          <Text style={styles.userNameText}>Welcome back to your dashboard</Text>
+        </View>
+      </LinearGradient>
+
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.welcomeCard}>
-          <Text style={styles.welcomeTitle}>Welcome! 👋</Text>
-          <Text style={styles.welcomeMessage}>
-            You have successfully logged in to your account.
-          </Text>
-          <Text style={styles.welcomeSubMessage}>
-            Thank you for using our app. We hope you enjoy your experience!
-          </Text>
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <Ionicons name="calendar" size={24} color="#667eea" />
+            <Text style={styles.statNumber}>{currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</Text>
+            <Text style={styles.statLabel}>Today</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Ionicons name="time" size={24} color="#764ba2" />
+            <Text style={styles.statNumber}>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</Text>
+            <Text style={styles.statLabel}>Current Time</Text>
+          </View>
         </View>
 
         <View style={styles.quickActionsCard}>
@@ -75,28 +130,64 @@ export default function WelcomeScreen() {
               style={styles.actionButton}
               onPress={() => openURL('https://www.linkedin.com/in/kaamaakshi-yamini-462b9b249/')}
             >
-              <View style={styles.actionIconContainer}>
-                <Ionicons name="logo-linkedin" size={24} color="#0A66C2" />
-              </View>
+              <LinearGradient
+                colors={['#0A66C2', '#0077B5']}
+                style={styles.actionGradient}
+              >
+                <Ionicons name="logo-linkedin" size={28} color="#fff" />
+              </LinearGradient>
               <Text style={styles.actionText}>LinkedIn</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.actionButton}
               onPress={() => openURL('https://github.com/yamini-kaamaakshi')}
             >
-              <View style={styles.actionIconContainer}>
-                <Ionicons name="logo-github" size={24} color="#333" />
-              </View>
+              <LinearGradient
+                colors={['#333', '#24292e']}
+                style={styles.actionGradient}
+              >
+                <Ionicons name="logo-github" size={28} color="#fff" />
+              </LinearGradient>
               <Text style={styles.actionText}>GitHub</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => Alert.alert('Settings', 'Settings feature coming soon!')}
+            >
+              <LinearGradient
+                colors={['#667eea', '#764ba2']}
+                style={styles.actionGradient}
+              >
+                <Ionicons name="settings" size={28} color="#fff" />
+              </LinearGradient>
+              <Text style={styles.actionText}>Settings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={handleProfilePress}
+            >
+              <LinearGradient
+                colors={['#f093fb', '#f5576c']}
+                style={styles.actionGradient}
+              >
+                <Ionicons name="person" size={28} color="#fff" />
+              </LinearGradient>
+              <Text style={styles.actionText}>Profile</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.tipsCard}>
-          <Text style={styles.tipsTitle}>💡 Tip of the Day</Text>
-          <Text style={styles.tipsText}>
-              You can also use the React Native CLI to generate and run a release build (e.g. from the root of your project: yarn android --mode release
-          </Text>
+          <LinearGradient
+            colors={['#FEF3C7', '#FDE68A']}
+            style={styles.tipsGradient}
+          >
+            <Ionicons name="bulb" size={24} color="#F59E0B" style={styles.tipIcon} />
+            <Text style={styles.tipsTitle}>Tip of the Day</Text>
+            <Text style={styles.tipsText}>
+              Did you know? You can use React Native CLI to generate and run a release build directly from your project root. Try: yarn android --mode release
+            </Text>
+          </LinearGradient>
         </View>
 
         <TouchableOpacity 
@@ -104,9 +195,68 @@ export default function WelcomeScreen() {
           onPress={handleNavToLogout}
           activeOpacity={0.8}
         >
-          <Text style={styles.logoutButtonText}>Logout</Text>
+          <LinearGradient
+            colors={['#DC2626', '#B91C1C']}
+            style={styles.logoutGradient}
+          >
+            <Ionicons name="log-out" size={20} color="#fff" style={styles.logoutIcon} />
+            <Text style={styles.logoutButtonText}>Logout</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Profile Modal */}
+      <Modal
+        visible={showProfileModal}
+        transparent
+        animationType="slide"
+        onRequestClose={handleProfileClose}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.profileModalContainer}>
+            <View style={styles.profileHeader}>
+              <LinearGradient
+                colors={['#f093fb', '#f5576c']}
+                style={styles.profileHeaderGradient}
+              >
+                <Ionicons name="person-circle" size={60} color="#fff" />
+                <Text style={styles.profileHeaderTitle}>Profile Information</Text>
+              </LinearGradient>
+            </View>
+            
+            <View style={styles.profileContent}>
+              <View style={styles.profileField}>
+                <Text style={styles.profileLabel}>Username</Text>
+                <View style={styles.profileValueContainer}>
+                  <Ionicons name="person" size={20} color="#667eea" style={styles.profileIcon} />
+                  <Text style={styles.profileValue}>{currentUser?.username || 'Not available'}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.profileField}>
+                <Text style={styles.profileLabel}>Email</Text>
+                <View style={styles.profileValueContainer}>
+                  <Ionicons name="mail" size={20} color="#667eea" style={styles.profileIcon} />
+                  <Text style={styles.profileValue}>{currentUser?.email || 'Not available'}</Text>
+                </View>
+              </View>
+            </View>
+            
+            <TouchableOpacity
+              style={styles.profileCloseButton}
+              onPress={handleProfileClose}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={['#667eea', '#764ba2']}
+                style={styles.profileCloseGradient}
+              >
+                <Text style={styles.profileCloseText}>Close</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Logout Confirmation Modal */}
       <Modal
@@ -154,15 +304,64 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
+  gradientHeader: {
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+    paddingBottom: 30,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  headerContent: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  avatarContainer: {
+    marginBottom: 15,
+  },
+  greetingText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 5,
+  },
+  userNameText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
   scrollView: {
     flex: 1,
   },
   contentContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 40,
+    paddingVertical: 20,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    gap: 15,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 15,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statNumber: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
   },
   welcomeCard: {
     backgroundColor: '#fff',
@@ -240,8 +439,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
     borderRadius: 15,
-    width: '100%',
-    maxWidth: 400,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -260,16 +457,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 10,
+    gap: 12,
   },
   actionButton: {
-    backgroundColor: '#f8f9fa',
-    padding: 15,
-    borderRadius: 12,
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 15,
     alignItems: 'center',
-    width: '48%',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    width: '47%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+    marginBottom: 10,
+  },
+  actionGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   actionIcon: {
     fontSize: 24,
@@ -279,9 +488,9 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   actionText: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
+    fontSize: 13,
+    color: '#333',
+    fontWeight: '600',
   },
   statsCard: {
     backgroundColor: '#fff',
@@ -316,22 +525,25 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     marginBottom: 5,
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-  },
   tipsCard: {
-    backgroundColor: '#FEF3C7',
-    padding: 20,
     borderRadius: 15,
-    width: '100%',
-    maxWidth: 400,
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tipsGradient: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  tipIcon: {
+    marginBottom: 10,
   },
   tipsTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#92400E',
     marginBottom: 10,
@@ -339,21 +551,34 @@ const styles = StyleSheet.create({
   tipsText: {
     fontSize: 14,
     color: '#78350F',
-    lineHeight: 20,
+    lineHeight: 22,
+    textAlign: 'center',
   },
   logoutButton: {
-    backgroundColor: '#DC2626',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    alignItems: 'center',
     alignSelf: 'center',
     marginTop: 20,
-    minWidth: 120,
+    minWidth: 140,
+    borderRadius: 25,
+    overflow: 'hidden',
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  logoutGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+  },
+  logoutIcon: {
+    marginRight: 8,
   },
   logoutButtonText: {
     color: '#fff',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
   },
   // Modal styles
@@ -426,6 +651,79 @@ const styles = StyleSheet.create({
     color: '#555',
   },
   confirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  // Profile Modal Styles
+  profileModalContainer: {
+    width: '90%',
+    maxWidth: 380,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  profileHeader: {
+    overflow: 'hidden',
+  },
+  profileHeaderGradient: {
+    padding: 25,
+    alignItems: 'center',
+  },
+  profileHeaderTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 10,
+  },
+  profileContent: {
+    padding: 25,
+  },
+  profileField: {
+    marginBottom: 20,
+  },
+  profileLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#888',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  profileValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  profileIcon: {
+    marginRight: 12,
+  },
+  profileValue: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+    flex: 1,
+  },
+  profileCloseButton: {
+    margin: 20,
+    marginTop: 0,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  profileCloseGradient: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  profileCloseText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
