@@ -110,16 +110,117 @@ export default function WelcomeScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Ionicons name="calendar" size={24} color="#667eea" />
-            <Text style={styles.statNumber}>{currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</Text>
-            <Text style={styles.statLabel}>Today</Text>
+        <View style={styles.portfolioCard}>
+          <View style={styles.portfolioHeader}>
+            <Text style={styles.portfolioTitle}>👋 About Me</Text>
+            <Text style={styles.portfolioSubtitle}>Full-Stack Developer & Tech Enthusiast</Text>
           </View>
-          <View style={styles.statCard}>
-            <Ionicons name="time" size={24} color="#764ba2" />
-            <Text style={styles.statNumber}>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</Text>
-            <Text style={styles.statLabel}>Current Time</Text>
+          
+          <View style={styles.portfolioContent}>
+            <Text style={styles.portfolioText}>
+              Passionate software developer with expertise in mobile and web technologies. 
+              I create innovative solutions that bridge the gap between user needs and cutting-edge technology.
+            </Text>
+            
+            <View style={styles.experienceSection}>
+              <Text style={styles.sectionTitle}>💼 Experience</Text>
+              <View style={styles.experienceItem}>
+                <Text style={styles.experienceRole}>Mobile App Developer</Text>
+                <Text style={styles.experienceDescription}>
+                  Building cross-platform mobile applications using React Native, 
+                  focusing on performance optimization and user experience.
+                </Text>
+              </View>
+              <View style={styles.experienceItem}>
+                <Text style={styles.experienceRole}>Frontend Developer</Text>
+                <Text style={styles.experienceDescription}>
+                  Creating responsive web applications with modern JavaScript frameworks 
+                  and ensuring seamless user interactions.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.projectsSection}>
+              <Text style={styles.sectionTitle}>🚀 Featured Projects</Text>
+              <View style={styles.projectItem}>
+                <Text style={styles.projectName}>E-Commerce Mobile App</Text>
+                <Text style={styles.projectDescription}>
+                  Full-featured shopping app with payment integration and real-time updates
+                </Text>
+              </View>
+              <View style={styles.projectItem}>
+                <Text style={styles.projectName}>Task Management System</Text>
+                <Text style={styles.projectDescription}>
+                  Collaborative platform for team productivity with advanced analytics
+                </Text>
+              </View>
+              <View style={styles.projectItem}>
+                <Text style={styles.projectName}>Social Media Dashboard</Text>
+                <Text style={styles.projectDescription}>
+                  Analytics dashboard for social media management with data visualization
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.skillsSection}>
+              <Text style={styles.sectionTitle}>⚡ Technical Skills</Text>
+              <View style={styles.skillsContainer}>
+                <View style={styles.skillBadge}>
+                  <Text style={styles.skillText}>React Native</Text>
+                </View>
+                <View style={styles.skillBadge}>
+                  <Text style={styles.skillText}>JavaScript</Text>
+                </View>
+                <View style={styles.skillBadge}>
+                  <Text style={styles.skillText}>TypeScript</Text>
+                </View>
+                <View style={styles.skillBadge}>
+                  <Text style={styles.skillText}>Node.js</Text>
+                </View>
+                <View style={styles.skillBadge}>
+                  <Text style={styles.skillText}>React.js</Text>
+                </View>
+                <View style={styles.skillBadge}>
+                  <Text style={styles.skillText}>Python</Text>
+                </View>
+                <View style={styles.skillBadge}>
+                  <Text style={styles.skillText}>MongoDB</Text>
+                </View>
+                <View style={styles.skillBadge}>
+                  <Text style={styles.skillText}>Firebase</Text>
+                </View>
+                <View style={styles.skillBadge}>
+                  <Text style={styles.skillText}>Git</Text>
+                </View>
+                <View style={styles.skillBadge}>
+                  <Text style={styles.skillText}>AWS</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.achievementsSection}>
+              <Text style={styles.sectionTitle}>🏆 Achievements</Text>
+              <View style={styles.achievementItem}>
+                <Text style={styles.achievementText}>• Published 5+ mobile apps on App Store & Google Play</Text>
+              </View>
+              <View style={styles.achievementItem}>
+                <Text style={styles.achievementText}>• 50+ open-source contributions on GitHub</Text>
+              </View>
+              <View style={styles.achievementItem}>
+                <Text style={styles.achievementText}>• Speaker at 3 tech conferences and meetups</Text>
+              </View>
+              <View style={styles.achievementItem}>
+                <Text style={styles.achievementText}>• AWS Certified Developer Associate</Text>
+              </View>
+            </View>
+
+            <View style={styles.contactSection}>
+              <Text style={styles.sectionTitle}>📬 Let's Connect</Text>
+              <Text style={styles.contactText}>
+                I'm always excited to collaborate on innovative projects and discuss new opportunities. 
+                Feel free to reach out through LinkedIn or explore my work on GitHub!
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -149,18 +250,6 @@ export default function WelcomeScreen() {
                 <Ionicons name="logo-github" size={28} color="#fff" />
               </LinearGradient>
               <Text style={styles.actionText}>GitHub</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => Alert.alert('Settings', 'Settings feature coming soon!')}
-            >
-              <LinearGradient
-                colors={['#667eea', '#764ba2']}
-                style={styles.actionGradient}
-              >
-                <Ionicons name="settings" size={28} color="#fff" />
-              </LinearGradient>
-              <Text style={styles.actionText}>Settings</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.actionButton}
@@ -727,5 +816,140 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  portfolioCard: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  portfolioHeader: {
+    backgroundColor: '#f8fafc',
+    padding: 20,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  portfolioTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 5,
+  },
+  portfolioSubtitle: {
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  portfolioContent: {
+    padding: 20,
+  },
+  portfolioText: {
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  // Section styles
+  experienceSection: {
+    marginBottom: 24,
+  },
+  projectsSection: {
+    marginBottom: 24,
+  },
+  skillsSection: {
+    marginBottom: 24,
+  },
+  achievementsSection: {
+    marginBottom: 24,
+  },
+  contactSection: {
+    marginBottom: 0,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 16,
+  },
+  // Experience styles
+  experienceItem: {
+    backgroundColor: '#f1f5f9',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3b82f6',
+  },
+  experienceRole: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 6,
+  },
+  experienceDescription: {
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 20,
+  },
+  // Project styles
+  projectItem: {
+    backgroundColor: '#f0f9ff',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#06b6d4',
+  },
+  projectName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 6,
+  },
+  projectDescription: {
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 20,
+  },
+  // Skills styles
+  skillsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  skillBadge: {
+    backgroundColor: '#ede9fe',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#d8b4fe',
+  },
+  skillText: {
+    fontSize: 12,
+    color: '#7c3aed',
+    fontWeight: '600',
+  },
+  // Achievement styles
+  achievementItem: {
+    marginBottom: 8,
+  },
+  achievementText: {
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 20,
+  },
+  // Contact styles
+  contactText: {
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 22,
+    fontStyle: 'italic',
   },
 });
